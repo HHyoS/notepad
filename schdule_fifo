@@ -1,0 +1,54 @@
+void FIFO(int pnum, int *pid, int *at, int *bt, int *tt, int *wt)
+{	printf(" Scheme: First-In-First-Out\n");
+	int runtime = 0;
+	int count = 0;
+	int nowtime = 0;
+	int flag = 0;
+	int ttt = 0;
+	while (1)
+	{
+		if (count == pnum && runtime == 0 && ttt == 0){printf("end time is : %d\n", nowtime);
+			break;}
+		if (nowtime == at[count])
+		{
+			
+			if (runtime == 0 && ttt ==0 )
+			{
+					wt[count] = 0;
+					tt[count] = bt[count];
+					runtime = bt[count];
+					flag++;
+					
+				}
+			else if(runtime ==0 && ttt >0){ 
+				wt[count] = ttt;
+				tt[count] = bt[count] + wt[count];
+				runtime = bt[flag];
+				ttt = ttt + bt[count];
+				flag++;
+				
+			}
+			else if (runtime >0 && ttt ==0)
+			{
+				wt[count] = runtime;
+				tt[count] = wt[count] + bt[count];
+				ttt = runtime + bt[count];
+				
+				
+			}
+			else if (runtime >0 && ttt >0){
+				wt[count] = ttt;
+				tt[count] = bt[count] + wt[count];
+				ttt = ttt + bt[count];
+				
+			}
+			
+			count++;
+				
+		}
+		nowtime++;
+		if(runtime > 0){
+		runtime--; }
+		if(ttt >0){
+		ttt--;}
+}}
