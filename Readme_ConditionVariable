@@ -1,0 +1,10 @@
+ConditionVariable.c code is code implemented based on the following conditions in two producers and one consumer situation:
+• Create three threads and each thread does the following:
+• Three threads use one shared buffer and MAX in the shared buffer is set to 10
+• Thread A is the producer who produces uppercase letters (A-Z) and lowercase letters (a-z) and inserts them into the buffer.
+• Thread B is the producer who produces 1 to 50 numbers and inserts them into the buffer
+• Thread C is the consumer who reads the values of the shared buffers in order and outputs them on the screen
+• Outputs tab ("\t") instead of opening ("\n") and table output every 10 tabs
+
+Written in the Ubuntu environment and executed in the Ubuntu terminal
+Enter gcc [Current file name.c] -o [New file name] -lpthread.
