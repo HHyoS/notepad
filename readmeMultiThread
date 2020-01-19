@@ -1,0 +1,5 @@
+MultiThread codes were written in the Ubuntu environment.
+The code was implemented to see how the int count declared static volume in the critical area works in a multi-thread environment.
+The parameters entered in the thread were set as structure and sent letters and numbers at the same time. When executed, 
+the order of the threads was printed in reverse order and the order of the pthread_create was written in reverse order.
+When running in Ubuntu, enter gcc [Current file name.c] -o [New file name] -lpthread.
