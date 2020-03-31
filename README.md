@@ -1,2 +1,2 @@
-This source code was created by Java.
-Code with leap month applied.
+This source code was created by C++
+A binary search program implemented in a recursive way.
