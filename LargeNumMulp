@@ -1,0 +1,91 @@
+#include<stdio.h>
+#include<cstdlib>
+#include<ctime>
+#include<vector>
+#include<math.h>
+#include<string.h>
+
+long long LIMAMulp(long long a, int digit) {
+    int ten = 1;
+    for (int i = 0; i < 2*digit; i++) {
+        ten = ten * 10;
+    }
+    return a *ten;
+}
+ 
+
+void TempL(long long value, long long &left,long long &right, int stand){
+    int num = stand / 2 + 1;
+
+    int ten = 1;
+    for (int i = 0; i < num; i++) {
+        ten = ten * 10;
+    }
+    left = value / ten;
+    right = value % ten;
+
+
+
+}
+long long Multi(long long a, long long b) {
+    long r;
+
+    r = a * b;
+    return r;
+}
+
+long LIMA(long long a, long long b) {
+    if (int(log10(a)) <=1 || int(log10(b)) <= 1)
+        return Multi(a, b);
+    else {
+        int aa, bb;
+        long long a_left=0, b_left=0, a_right=0, b_right=0;
+        int stand = 0;
+        long long z0, z1, z2;
+        aa = int(log10(a));
+        bb = int(log10(b));
+        if (aa >= bb)
+            stand = bb;
+        else
+            stand = aa;
+
+        TempL(a, a_left, a_right, stand);
+        TempL(b, b_left, b_right, stand);
+
+        z2 = LIMA(a_left, b_left);
+        z1 = LIMA(a_left + a_right, b_left + b_right);
+        z0 = LIMA(a_right, b_right);
+
+        z1 = z1 - z2 - z0;
+
+        z2 = LIMAMulp(z2, stand);
+        z1 = LIMAMulp(z1, stand / 2);
+        z0 = LIMAMulp(z0, 0);
+
+        return z1 + z2 + z0;
+    }
+
+
+
+}
+int main() {
+    char str[256];
+    char* pos;
+    long long num[3];
+    int i = 0;
+    while (i != 3) {
+        scanf("%[^\n]s", str);
+        scanf("%*c", str);
+
+
+        pos = strtok(str, " ");
+        while (pos != NULL) {
+            num[i] = atol(pos);
+            pos = strtok(NULL, " ");
+            ++i;
+        }
+    }
+    printf("%lld",LIMA(num[0], num[1]));
+
+
+}
