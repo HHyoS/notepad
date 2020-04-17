@@ -1,0 +1,115 @@
+#include<stdio.h>
+#include<cstdlib>
+#include<vector>
+#include <string.h>
+using namespace std;
+
+static int white = 0;
+static int blue = 0;
+
+
+bool Check(vector< vector<int> >& Matrix) {
+    int std1 = Matrix[0][0];
+
+    for (int a = 0; a < (int)Matrix.size(); ++a) {
+        for (int b = 0; b < (int)Matrix.size(); ++b) {
+            if (std1 != Matrix[a][b])
+                return false;
+        }
+    }
+    if (std1 == 0)
+        white++;
+    else
+        blue++;
+
+    return true;
+}
+
+
+void TempM(vector< vector<int> >& array, vector< vector<int> >& m11, vector< vector<int> >& m12, vector< vector<int> >& m21, vector< vector<int> >& m22){
+    int num = (int)m11.size();
+
+    for (int a= 0; a < num; ++a){
+        for (int b = 0; b < num; ++b) {
+            m11[a][b] = array[a][b];
+            m12[a][b] = array[a][b + num];
+            m21[a][b] = array[a+num][b];
+            m22[a][b] = array[a+num][b+num];
+        }
+    }
+}
+
+
+
+void Sack(vector< vector<int> >& M){
+
+    if (Check(M)){
+        return;
+    }
+    else {
+        int x = (int)M.size()/2;
+
+        vector<int> y(x, 0);
+
+        vector < vector<int> > a11(x, y), a12(x, y), a21(x, y), a22(x, y);
+
+
+        TempM(M, a11, a12, a21, a22);
+
+        Sack(a11);
+        Sack(a12);
+        Sack(a21);
+        Sack(a22);
+
+    }
+}std::vector<vector<int>> setVector(int size) {
+    char str[256];
+    vector<vector<int> > array(size, vector<int>(size, 0));
+    char* pos;
+    for (int i = 0; i < size; ++i) {
+        int j = 0;
+
+ //       printf("input Matrixz values.");
+
+        scanf("%[^\n]s", str);
+        scanf("%*c", str);
+
+
+        pos = strtok(str, " ");
+        while (j != size) {
+            array[i][j] = atoi(pos);
+            pos = strtok(NULL, " ");
+            ++j;
+        }
+    }
+    return array;
+}
+void printVector(vector<vector<int>>& vectorArray1) {
+    int size = (int)vectorArray1.size();
+
+    for (int b = 0; b < size; ++b) {
+        for (int c = 0; c < size; ++c) {
+            printf("%d\t", vectorArray1[b][c]);
+        }
+        printf("\n");
+    }
+}
+int main() {
+    int size;
+    while (true) {
+ //       printf("input Matrix size.");
+        scanf("%d", &size);
+        if (size == (size & -size)){
+            scanf("%*c", size);
+            break;
+    }
+        else
+            printf("it is no 2^x !\n");
+    }
+    vector<vector<int> > arrayA(size, vector<int>(size, 0));
+    arrayA = setVector(size);
+    Sack(arrayA);
+ //   printVector(arrayA);
+    printf("%d\n", white);
+    printf("%d", blue);
+}
