@@ -1,0 +1,70 @@
+#include <iostream>
+#include <cstdio>
+
+#define INF 987654321
+
+using namespace std;
+
+int comNum, lineNum;
+int graph[1001][1001];
+int visited[1001];
+int cost[1001];
+int minCost;
+
+void input() {
+	cin >> comNum;
+	cin >> lineNum;
+	for (int i = 1; i <= comNum; i++) {
+		cost[i] = INF;
+		for (int j = 1; j <= comNum; j++) {
+			graph[i][j] = INF;
+		}
+	}
+}
+
+void makeGraph() {
+	for (int i = 1; i <= lineNum; i++) {
+		int from, to, cost;
+		scanf("%d %d %d", &from, &to, &cost);
+
+		graph[from][to] = cost;
+		graph[to][from] = cost;
+	}
+}
+
+void findMinCost() {
+	int count = 0;
+	cost[1] = 0;
+
+	while (count < comNum) {
+		int min = INF;
+		int currCom = -1;
+
+		for (int i = 1; i <= comNum; i++) {
+			if (visited[i] == 0 && cost[i] < min) {
+				min = cost[i];
+				currCom = i;
+			}
+		}
+
+		for (int i = 1; i <= comNum; i++) {
+			if (visited[i] == 0 && graph[currCom][i] != INF) {
+				if (graph[currCom][i] < cost[i]) {
+					cost[i] = graph[currCom][i];
+				}
+			}
+		}
+
+		count++;
+		minCost += min;
+		visited[currCom] = 1;
+	}
+
+	cout << minCost << "\n";
+}
+
+int main() {
+	input();		
+	makeGraph();   
+	findMinCost();  
+}
