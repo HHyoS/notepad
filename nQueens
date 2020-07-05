@@ -1,0 +1,55 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+void queens(int i);
+bool promising(int i);
+
+int n;
+int* col;
+
+int main()
+{
+
+    printf("insert num : ");
+    printf("Insert : ");
+    scanf("%d", &n);
+
+    col = (int*)malloc(n * sizeof(int));
+    queens(0);
+
+    return 0;
+}
+
+void queens(int i)
+{
+    int j, tmp;
+
+    if (promising(i))
+        if (i == n) {
+            for (tmp = 1; tmp <= n; tmp++)
+                printf(" %d ", col[tmp]);
+            printf("\n");
+        }
+        else
+            for (j = 1; j <= n; j++) {
+                col[i + 1] = j;
+                queens(i + 1);
+            }
+}
+
+bool promising(int i)
+{
+    int k;
+    bool result;
+
+    k = 1;
+    result = true;
+
+    while (k < i && result) {
+        if (col[i] == col[k] || abs(col[i] - col[k]) == i - k)
+            result = false;
+        k++;
+    }
+    return result;
+}
