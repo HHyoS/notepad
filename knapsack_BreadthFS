@@ -1,0 +1,110 @@
+#include<iostream>
+#include<time.h>
+using namespace std;
+int p[6] = { 0,20,30,35,12,3 }; //profit
+int w[6] = { 0,2,5,7,3,1 }; // weight
+int W = 13; //최대 weight
+int maxprofit = 0;
+int pcount = 0; // promissing node count
+int ncount = 0; // non_promissing node count
+typedef struct node {
+	int level;
+	int profit;
+	int weight;
+}node;
+template<class T>
+class Queue // make queue
+{
+private:
+	T* queue;
+	int front, rear, capacity;
+public:
+	Queue();
+	bool IsEmpty();
+	void Push(T& item);
+	T& Pop();
+};
+template<class T>
+Queue<T>::Queue()
+{
+	capacity = 40;
+	queue = new T[capacity];
+	front = rear = 0;
+}
+template<class T>
+bool Queue<T>::IsEmpty() { return front == rear; }
+template<class T>
+void Queue<T>::Push(T& item)
+{
+	queue[rear++] = item;
+}
+template<class T>
+T& Queue<T>::Pop()
+{
+	return queue[front++];
+}
+void knapsack2();
+int bound(node u);
+int main(void)
+{
+	double f;
+	clock_t start;
+	clock_t end;
+	start = clock(); // 시간 측정
+	knapsack2();
+	end = clock();
+	cout << "max profit " << maxprofit << endl;
+	cout << "promising node count " << pcount << endl;
+	cout << "non-promising node count  " << ncount << endl;
+	f = (double)(end - start) / CLOCKS_PER_SEC;
+	cout << endl << "run time : " << f << endl;
+	return 0;
+}
+void knapsack2() {
+	Queue<node> q;
+	node u, v;
+	v.level = 0;v.profit = 0;v.weight = 0;
+	pcount++; // start (0,0) node
+	q.Push(v);
+	while (!q.IsEmpty()) {
+		v = q.Pop(); u.level = v.level + 1;
+		u.profit = v.profit + p[u.level];
+		u.weight = v.weight + w[u.level];
+		if ((u.weight <= W) && (u.profit > maxprofit)) maxprofit = u.profit;
+		if (bound(u) > maxprofit)
+		{
+			q.Push(u);
+			pcount++; // promissing node
+		}
+		else
+			ncount++; // non_promissing node
+		u.weight = v.weight;
+		u.profit = v.profit;
+		if (bound(u) > maxprofit)
+		{
+			q.Push(u);
+			pcount++; // promissing node
+		}
+		else
+			ncount++; //  non_promissing node
+	}
+}
+int bound(node m) {
+	int j, k; int totweight;
+	int result;
+	if (m.weight >= W)
+		return 0;
+	else {
+		result = m.profit; j = m.level + 1; totweight = m.weight;
+		while ((j <= 5) && (totweight + w[j] <= W)) {
+			totweight = totweight + w[j];
+			result = result + p[j];
+			j++;
+		}
+		k = j;
+		if (k <= 5)
+			result = result + (W - totweight) * (p[k] / w[k]);
+		return result;
+	}
+}
+*/
