@@ -4,7 +4,7 @@
 
 using namespace std;
 int N;
-int M;
+int M; 
 int K;
 std::vector<int> Mulp(vector<int>& mA, vector<int>& mB) {
     vector <int>mC(K * N);
