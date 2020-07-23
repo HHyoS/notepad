@@ -1,0 +1,127 @@
+#include<stdio.h>
+#include<cstdlib>
+#include<vector>
+#include <string.h>
+using namespace std;
+static int m = 0;
+static int z = 0;
+static int o = 0;
+
+
+bool Check(vector< vector<int> >& Matrix) {
+    int std1 = Matrix[0][0];
+
+    for (int a = 0; a < (int)Matrix.size(); ++a) {
+        for (int b = 0; b < (int)Matrix.size(); ++b) {
+            if (std1 != Matrix[a][b])
+                return false;
+        }
+    }
+    if (std1 == 0)
+        z++;
+    else if (std1 == -1)
+        m++;
+    else
+        o++;
+    return true;
+}
+
+
+void TempM(vector< vector<int> >& array, vector< vector<int> >& m11, vector< vector<int> >& m12, vector< vector<int> >& m13,
+    vector< vector<int> >& m21, vector< vector<int> >& m22, vector< vector<int> >& m23, vector< vector<int> >& m31, vector< vector<int> >& m32,
+    vector< vector<int> >& m33) {
+    int num = (int)m11.size();
+
+    for (int a = 0; a < num; ++a) {
+        for (int b = 0; b < num; ++b) {
+            m11[a][b] = array[a][b];
+            m12[a][b] = array[a][b + num];
+            m13[a][b] = array[a][b + 2*num];
+            m21[a][b] = array[a + num][b];
+            m22[a][b] = array[a + num][b + num];
+            m23[a][b] = array[a + num][b + 2*num];
+            m31[a][b] = array[a + 2 * num][b];
+            m32[a][b] = array[a + 2 * num][b + num];
+            m33[a][b] = array[a + 2 * num][b + 2*num];
+        }
+    }
+}
+
+
+
+void Paper(vector< vector<int> >& M) {
+
+    if (Check(M)) {
+        return;
+    }
+    else {
+        int x = (int)M.size() / 3;
+
+        vector<int> y(x, 0);
+
+        vector < vector<int> > a11(x, y), a12(x, y), a13(x, y), a21(x, y), a22(x, y), a23(x, y), a31(x, y), a32(x, y), a33(x, y);
+
+
+        TempM(M, a11, a12,a13, a21, a22, a23, a31, a32, a33);
+
+        Paper(a11);
+        Paper(a12);
+        Paper(a13);
+        Paper(a21);
+        Paper(a22);
+        Paper(a23);
+        Paper(a31);
+        Paper(a32);
+        Paper(a33);
+
+    }
+}std::vector<vector<int>> setVector(int size) {
+    char str[9000];
+    char* pos;
+    vector<vector<int> > array(size, vector<int>(size, 0));
+    for (int i = 0; i < size; ++i) {
+        int j = 0;
+
+        //       printf("행렬의 값입력.");
+
+        scanf("%[^\n]s", str);
+        scanf("%*c", str);
+        pos = strtok(str, " ");
+        while (j != size) {
+            array[i][j] = atoi(pos);
+            pos = strtok(NULL, " ");
+            ++j;
+    }
+
+    }
+    return array;
+}
+int main() {
+    int size;
+    int tmp;
+    int tmp1;
+    int jud = 0;
+    while (jud == 0) {
+        scanf("%d", &size);
+        scanf("%*c", size);
+        tmp = size;
+        while (true) {
+            tmp1 = tmp % 3;
+            tmp = tmp / 3;
+            if (tmp == 0 && tmp1 == 1) {
+                jud = 1;
+                break;
+            }
+            else if (tmp > 1 && tmp1 != 0) {
+                printf("3의 거듭제곱이 아님");
+                break;
+            }
+        }
+    }
+    vector<vector<int> > arrayA(size, vector<int>(size, 0));
+    arrayA = setVector(size);
+    Paper(arrayA);
+    printf("%d\n", m);
+    printf("%d\n", z);
+    printf("%d", o);
+}
