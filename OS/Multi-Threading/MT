@@ -64,4 +64,4 @@ int main(int argc, char *argv[])
     pthread_join(p5, NULL);
     printf("main: done with both (counter = %d)\n", counter);
     return 0;
-} 
+}  
