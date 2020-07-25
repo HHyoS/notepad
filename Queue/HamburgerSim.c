@@ -9,7 +9,7 @@
 #define BUL_BUR		1		
 #define DUB_BUR		2		
 
-#define CHE_TERM	12		
+#define CHE_TERM	12		 
 #define BUL_TERM	15		
 #define DUB_TERM	24		
 
