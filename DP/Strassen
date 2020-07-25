@@ -1,0 +1,195 @@
+#include<stdio.h>
+#include<cstdlib>
+#include<ctime>
+#include<vector>
+using namespace std;
+
+void StrassenSum(vector< vector<int> >& mA, vector< vector<int> >& mB, vector< vector<int> >& mC){
+    for (int a = 0; a < (int)mA.size(); ++a){
+        for (int b = 0; b < (int)mA[a].size(); ++b){
+            mC[a][b] = mA[a][b] + mB[a][b];
+        }
+    }
+}
+
+void StrassenMinus(vector< vector<int> >& mA, vector< vector<int> >& mB, vector< vector<int> >& mC){
+    for (int a = 0; a < (int)mA.size(); ++a){
+        for (int b = 0; b < (int)mA[a].size(); ++b){
+            mC[a][b] = mA[a][b] - mB[a][b];
+        }
+    }
+}
+
+void StrassenMulp(vector< vector<int> >& mA, vector< vector<int> >& mB, vector< vector<int> >& mC){
+    for (int a = 0; a < (int)mA.size(); ++a){
+        for (int b = 0; b < (int)mA[a].size(); ++b){
+            for (int c = 0; c < (int)mA[a].size(); ++c){
+                mC[a][b] += mA[a][c] * mB[c][b];
+            }
+        }
+    }
+ }
+
+void TempM(vector< vector<int> >& array, vector< vector<int> >& m11, vector< vector<int> >& m12, vector< vector<int> >& m21, vector< vector<int> >& m22){
+    int num = (int)m11.size();  
+
+    for (int a= 0; a < num; ++a){
+        for (int b = 0; b < num; ++b) {
+            m11[a][b] = array[a][b];
+            m12[a][b] = array[a][b + num];
+            m21[a][b] = array[a+num][b];
+            m22[a][b] = array[a+num][b+num];
+        }
+    }
+}
+
+
+void StrassenMerge(vector< vector<int> >& array, vector< vector<int> >& m11, vector< vector<int> >& m12, vector< vector<int> >& m21, vector< vector<int> >& m22){
+    int num = (int)m11.size();  
+
+    for (int a = 0; a < num; ++a){
+        for (int b = 0; b < num; ++b){
+
+            array[a][b] = m11[a][b];                    
+            array[a][b+num] = m12[a][b];               
+            array[a+num][b] = m21[a][b];              
+            array[a+num][b + num] = m22[a][b];    
+
+        }
+    }
+}
+
+
+void Strassen(int th, vector< vector<int> >& mA, vector< vector<int> >& mB, vector< vector<int> >& mC){
+
+    if (th <= 2){
+        StrassenMulp(mA,mB,mC);
+        return;
+    }
+    else {
+        int x = th / 2;                    
+
+        vector<int> y(x, 0);
+
+        vector < vector<int> > a11(x, y), a12(x, y), a21(x, y), a22(x, y);
+        vector < vector<int> > b11(x, y), b12(x, y), b21(x, y), b22(x, y);
+
+        vector < vector<int> > m1(x, y), m2(x, y), m3(x, y), m4(x, y), m5(x, y), m6(x, y), m7(x, y);
+        vector < vector<int> > tempA(x, y), tempB(x, y);
+        vector < vector<int> > c11(x, y), c12(x, y), c21(x, y), c22(x, y);
+
+        TempM(mA, a11, a12, a21, a22);
+        TempM(mB, b11, b12, b21, b22);
+
+        // m1 = (a11 + a22)(b11 + b22)
+        // m1 = Strassen(Sum(a11,a22), Sum(b11+b22))
+        StrassenSum(a11, a22, tempA);             
+        StrassenSum(b11, b22, tempB);              
+        Strassen(x, tempA, tempB, m1);   
+
+        // m2 = (a21 + a22)b11
+        // m2 = Strassen(Sum(a21,a22), b11)
+        StrassenSum(a21, a22, tempA);
+        Strassen(x, tempA, b11, m2);     
+
+        // m3 = a11(b12 - b22)
+        // m3 = Strassen(a11,Minus(b12-b22))
+        StrassenMinus(b12, b22, tempB);          
+        Strassen(x, a11, tempB, m3);     
+
+        // m4 = a22(b21 - b11)
+        // m4 = Strassen(a22,Minus(b21-b11))
+        StrassenMinus(b21, b11, tempB);
+        Strassen(x, a22, tempB, m4);     
+
+        // m5 = (a11 + a12)b22
+        // m5 = Strassen(Sum(a11 + a12),b22)
+        StrassenSum(a11, a12, tempA);          
+        Strassen(x, tempA, b22, m5);       
+
+        // m6 = (a21 - a11)(b11 + b12)
+        // m6 = Strassen(Minus(a21 - a11),Sum(b11+b12))
+        StrassenMinus(a21, a11, tempA);           
+        StrassenSum(b11, b12, tempB);           
+        Strassen(x, tempA, tempB, m6);   
+
+        // m7 = (a12 - a22)(b21 + b22)
+        // m7 = Strassen(Minus(a12 - a22),Sum(b21+b22))
+        StrassenMinus(a12, a22, tempA);         
+        StrassenSum(b21, b22, tempB);          
+        Strassen(x, tempA, tempB, m7);   
+
+        StrassenSum(m1, m4, tempA); //m1 + m4
+        StrassenSum(tempA, m7, tempB); //m1 + m4 + m7
+        StrassenMinus(tempB, m5, c11); //c11 = m1 + m4 - m5 + m7
+        StrassenSum(m3, m5, c12); //c12 = m3 + m5
+        StrassenSum(m2, m4, c21); //c21 = m2 + m4
+        StrassenSum(m1, m3, tempA); //m1 + m3
+        StrassenSum(tempA, m6, tempB); //m1 + m3 + m6
+        StrassenMinus(tempB, m2, c22); //c22 = m1 + m3 - m2 + m6
+        StrassenMerge(mC, c11, c12, c21, c22);
+    }
+}
+std::vector<vector<int>> setVector(int size) {
+	vector<vector<int> > array(size, vector<int>(size, 0));
+	int num;
+	for (int i = 0; i < size; ++i) {
+		for (int j = 0; j < size; ++j) {
+			num = rand();
+			array[i][j] = (int)num % 10 + 1;
+		}
+	}
+	return array;
+}
+void printVector(vector<vector<int>>& vectorArray1, vector<vector<int>>& vectorArray2, vector<vector<int>>& vectorArray3, int size) {
+
+	printf("A Marix");
+	for (int a = 0; a < size; ++a) {
+		printf("\t");
+	}
+	printf("\t\tB Matrix\n");
+
+	for (int b = 0; b < size; ++b) {
+		for (int c = 0; c < size; ++c) {
+			printf("%d\t", vectorArray1[b][c]);
+		}
+		printf("\t\t");
+		for (int d = 0; d < size; ++d) {
+			printf("%d\t", vectorArray2[b][d]);
+		}
+		printf("\n");
+	}
+    printf("result C Matrix \n");
+
+    for (int e = 0; e < size; ++e) {
+        for (int f = 0; f < size; ++f) {
+            printf("%d\t", vectorArray3[e][f]);
+        }
+        printf("\n");
+    }
+
+}
+int main() {
+	int size;
+	srand((unsigned int)time(NULL));
+	while (true) {
+		printf("input matrix size.");
+		scanf_s("%d", &size);
+		if (size == (size & -size))
+			break;
+		else
+			printf("it's not 2 * n !\n");
+	}
+	vector<vector<int> > arrayA(size, vector<int>(size, 0));
+	vector<vector<int> > arrayB(size, vector<int>(size, 0));
+        vector<vector<int> > arrayC(size, vector<int>(size, 0));
+
+	arrayA = setVector(size);
+	arrayB = setVector(size);
+
+    Strassen(size, arrayA, arrayB, arrayC);
+
+	printVector(arrayA, arrayB, arrayC, size);
+
+	
+}
