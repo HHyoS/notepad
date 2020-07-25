@@ -1,0 +1,39 @@
+#include<stdio.h>
+struct Binary { int m; int count; };
+Binary binarySearch(int data[], int left, int right, int value, int count) {
+
+    Binary bi;
+    count++;
+    if (left > right) {
+        bi.count = -1;
+        bi.m = -1;
+        return bi;
+    }
+    int center = (left + right) / 2;
+
+    if (data[center] == value) {
+        bi.count = count;
+        bi.m = center;
+        return bi;
+    }
+    else if (data[center] > value) {
+        return binarySearch(data, left, center - 1, value, count);
+    }
+    else {
+        return binarySearch(data,  center + 1, right, value, count);
+    }
+
+}
+
+int main() {
+    int data[] = { 1,3,6,8,11,23,111,114,213 };
+    int size = sizeof(data) / sizeof(int);
+    Binary result = binarySearch(data,0 ,size-1, 114,0);
+    if (result.m == -1 && result.count == -1) {
+        printf("The number does not exist");
+        return 0;
+    }
+
+    printf("Located at %d, Navigate %d \n", result.m + 1, result.count + 1);
+    return 0;
+}
