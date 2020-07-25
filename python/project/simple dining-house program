@@ -1,0 +1,537 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+
+from tkinter import *
+from tkinter import ttk
+from tkinter import filedialog
+import os
+import sqlite3
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from pandas import Series, DataFrame
+import tkinter.messagebox as msg
+import statsmodels.api as sm
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+
+Base_Dir = os.path.abspath('.')
+Target_Dir = os.path.join(Base_Dir, "db")
+Target_File = 'Cafeteria1.db'
+Target_File_Full_Path = os.path.join(Target_Dir, Target_File)
+filepath = ""
+day_client = []
+dayR_client = []
+day_aver = []
+menu_aver = []
+
+time = { 0 : "조식", 1:"중식", 2:"석식"}
+timee = ['조식','중식','석식']
+
+day = {0:'월요일',1:'화요일', 2:'수요일',3:'목요일' ,4:'금요일' , 5:'토요일', 6:'일요일'}
+total_client = 0 # 전체 식수인원합
+real_client = 0  # 실제 식수인원합
+total_aver = 0 # 실제식수 / 전체식수
+
+
+mainView = Tk()
+mainView.title("식수 관리 프로그램 Beta")
+mainView.geometry("1024x768")
+mainView.resizable(False, False)
+
+stdFrame  = Frame(mainView, height = 768, width = 1024, background='white')
+std1Frame = Frame(stdFrame, height = 100, width = 1024, background='old lace')
+std2Frame = Frame(stdFrame, height = 668, width = 1024, background='bisque')
+
+predictFrame = Frame(mainView, height = 768, width = 1024, background='white')
+predict1Frame = Frame(predictFrame, height = 100, width = 1024, background='old lace')
+predict2Frame = Frame(predictFrame, height = 668, width = 1024, background='bisque')
+
+showFrame= Frame(mainView, height = 768, width = 1024, background='white')
+show1Frame = Frame(showFrame, height = 100, width = 1024, background='old lace')
+show2Frame = Frame(showFrame, height = 668, width = 1024, background='bisque')
+show3Frame = Frame(show2Frame, height =300, width = 500, background='bisque')
+show4Frame = Frame(show2Frame, height =300, width = 500, background='bisque')
+show5Frame = Frame(show2Frame, height =300, width = 500, background='bisque')
+show6Frame = Frame(show2Frame, height =300, width = 500, background='bisque')
+show7Frame = Frame(show2Frame, height =300, width = 500, background='bisque')
+                      
+
+#식수등록 콤보박스
+combobox1 =  ttk.Combobox(std2Frame,width=30,textvariable=str)
+combobox2 =  ttk.Combobox(std2Frame,width=30,textvariable=str)
+                      
+#show 콤보박스
+show1box =  ttk.Combobox(show2Frame,width=15,textvariable=str)
+show2box =  ttk.Combobox(show2Frame,width=15,textvariable=str)
+def createTable():
+    con = sqlite3.connect(Target_File_Full_Path)
+    cur = con.cursor()
+    cur.execute('''Create Table if not exists Cafeteria (연도 VARCHAR(4),월 VARCHAR(2),구분 VARCHAR(2),요일 VARCHAR(10),메뉴 VARCHAR(15),전체인원 INTEGER,식수인원 INTEGER)''')
+    con.commit()
+    cur.close()
+    con.close()
+
+
+
+def makeDir():
+    if not os.path.isdir(Target_Dir) :
+        os.makedirs(Target_Dir)
+def like_dislike():  
+    radio_value = IntVar()
+    radio_value.set(1)
+    choice = {0:'요일별 식수율',1:'요일+시간별 식수율',2:'시간별 식수율',3:"인기메뉴 순위",
+              4:"비인기메뉴 순위"}
+    Radiobutton(show2Frame, text = choice[0], variable = radio_value, value = 0).place(x=5,y=10)
+    Radiobutton(show2Frame, text = choice[1], variable = radio_value, value = 1).place(x=105,y=10)
+    Radiobutton(show2Frame, text = choice[2], variable = radio_value, value = 2).place(x=235,y=10)
+    Radiobutton(show2Frame, text = choice[3], variable = radio_value, value = 3).place(x=335,y=10)
+    Radiobutton(show2Frame, text = choice[4], variable = radio_value, value = 4).place(x=435,y=10)
+        # 일별
+    for a in range(7) :   
+        day_aver.append(0) # 일별 식수확률 배열
+        day_client.append(0)
+        dayR_client.append(0)
+    total_client =0
+    real_client =0
+    for a in range(7) :
+        cur.execute("SELECT 전체인원,식수인원 from Cafeteria where 요일 = '"+day[a]+"'")
+        for i in cur :
+            day_client[a] = day_client[a] + int(i[0])
+            dayR_client[a] = dayR_client[a] + int(i[1])
+            total_client = total_client + int(i[0])
+            real_client = real_client + int(i[1])
+            day_aver[a] = dayR_client[a] / day_client[a] * 100
+        total_aver = real_client/total_client*100
+    data1 = {'요일':[day[0],day[1],day[2],day[3],day[4],day[5],day[6]],'식수율':[day_aver[4],day_aver[1],day_aver[2],day_aver[3],day_aver[0],day_aver[5],day_aver[6]]}
+    df1 = DataFrame(data1, columns = ['요일','식수율'])
+    df1 = df1[['요일','식수율']].groupby('요일',sort=False).sum()
+    figure1 = plt.Figure(figsize=(8,4), dpi = 100)
+    ax1 = figure1.add_subplot(111)
+    pos = np.arange(7)
+    rects = plt.bar(pos, day_aver, align='center',width= 0.5)
+    for i,rect in enumerate(rects) :
+        ax1.text(rect.get_x() + rect.get_width() / 2.0, 0.95*rect.get_height(),
+               str(int(day_aver[i]))+ '%', ha='center')
+    plt.xticks(pos, day)
+    bar1 = FigureCanvasTkAgg(figure1, show3Frame)
+    bar1.get_tk_widget().pack(side=LEFT, fill=BOTH)
+    ax1.set_title('요일별 식수율')
+        
+    #요일+시간별
+    total =0
+    R_total = 0
+    day_time = [[0]*3 for i in range(7)]
+    
+    for b in range(7) :
+        for a in range(3) :
+            cur.execute("select 전체인원,식수인원 from Cafeteria where 요일 = '"+day[b]+"' and 구분 = '"+time[a]+"' ")
+            for i in cur :
+                total = total + int(i[0])
+                R_total = R_total + int(i[1])
+            day_time[b][a] = R_total / total * 100
+            total = 0
+            R_total = 0
+    data2 = {'요일':[day[0],day[0],day[0],day[1],day[1],day[1],day[2],day[2],day[2],day[3],day[3],day[3],day[4],day[4],day[4],
+                   day[5],day[5],day[5],day[6],day[6],day[6]],'구분':['조식','중식','석식','조식','중식','석식','조식','중식','석식',
+                    '조식','중식','석식','조식','중식','석식','조식','중식','석식','조식','중식','석식'],'식수율':[day_time[0][0],
+                    day_time[0][1],day_time[0][2],day_time[1][0],day_time[1][1],day_time[1][2],day_time[2][0],day_time[2][1],
+                    day_time[2][2],day_time[3][0],day_time[3][1],day_time[3][2],day_time[4][0],day_time[4][1],day_time[4][2],
+                    day_time[5][0],day_time[5][1],day_time[5][2],day_time[6][0],day_time[6][1],day_time[6][2]]}
+
+    df2 = DataFrame(data2, columns = ['요일','구분','식수율'])
+    figure2 = plt.Figure(figsize=(8,4), dpi = 100)
+    josic = []
+    joongsic = []
+    sucksic = []
+    for a in range(7) :
+        josic.append(day_time[a][0])
+        joongsic.append(day_time[a][1])
+        sucksic.append(day_time[a][2])
+            
+    podss = np.arange(7)
+    rects11 = plt.bar(podss, josic, align='center',width= 0.5)
+    rects22 = plt.bar(podss, joongsic, align='center',width= 0.5)
+    rects33 = plt.bar(podss, sucksic, align='center',width= 0.5)
+    ax2 = figure2.add_subplot(111)
+    for i,rect in enumerate(rects11) :
+        ax2.text(rect.get_x() + rect.get_width() / 2.0-0.3, rect.get_height()+0.3,
+               str(int(josic[i]))+ '%', ha='left', fontsize=7)
+    for i,rect in enumerate(rects22) :
+        ax2.text(rect.get_x() + rect.get_width() / 2.0, rect.get_height()+0.3,
+               str(int(joongsic[i]))+ '%', ha='center',fontsize=7)
+    for i,rect in enumerate(rects33) :
+        ax2.text(rect.get_x() + rect.get_width() / 2.0 +0.3, rect.get_height()+0.3,
+               str(int(sucksic[i]))+ '%', ha='right',fontsize=7)
+    plt.xticks(podss, day)
+    df2.pivot(index='요일',columns='구분',values='식수율')
+    df2 = df2[['요일','식수율','구분']].groupby(['요일','구분'],sort=False).sum().unstack()
+    bar2 = FigureCanvasTkAgg(figure2, show4Frame)
+    bar2.get_tk_widget().pack(side=LEFT, fill=BOTH)
+    ax2.set_title('요일+시간별 식수율')
+        
+        
+    # 시간별 식수율
+    total =0
+    R_total = 0
+    time_ratio = []
+    figure3 = plt.Figure(figsize=(8,4), dpi = 100)
+    for a in range(3) :
+        time_ratio.append(0)
+    for a in range(3) :
+        cur.execute("select 전체인원,식수인원 from Cafeteria where 구분 = '"+time[a]+"' ")
+        for i in cur :
+            total = total + int(i[0])
+            R_total = R_total + int(i[1])
+        time_ratio[a] = R_total / total * 100
+        total = 0
+        R_total = 0   
+    data3 = {'구분':[time[0],time[1],time[2]],'식수율':[time_ratio[0],time_ratio[1],time_ratio[2]]}  
+    df3 = DataFrame(data3, columns = ['구분','식수율'])
+    ax3 = figure3.add_subplot(111)
+    pos1 = np.arange(3)
+    rects1 = plt.bar(pos1, time_ratio, align='center',width= 0.5)
+    for i,rect in enumerate(rects1) :
+        ax3.text(rect.get_x() + rect.get_width() / 2.0, 0.95*rect.get_height(),
+               str(int(time_ratio[i]))+ '%', ha='center')
+    plt.xticks(pos1, time)
+    df3 = df3[['구분','식수율']].groupby('구분',sort=False).sum()
+    bar3 = FigureCanvasTkAgg(figure3, show5Frame)
+    bar3.get_tk_widget().pack(side=LEFT, fill=BOTH)
+    ax3.set_title('시간별 식수율')
+    
+    # 인기메뉴 , 비인기 메뉴
+    figure5 = plt.Figure(figsize=(8,4), dpi = 100)
+    figure4 = plt.Figure(figsize=(8,4), dpi = 100)
+    menu = []
+    cur.execute("select DISTINCT 메뉴 from Cafeteria")
+    for menus in cur :
+        menu.append(menus[0])
+        menu_aver.append(0)
+    for coun in range(len(menu)) :
+        menu_total = 0
+        menu_Rtotal = 0
+        cur.execute("select 전체인원,식수인원 from Cafeteria where 메뉴 = '"+menu[coun]+"' ")
+        for b in cur :
+            menu_total = menu_total + int(b[0])
+            menu_Rtotal = menu_Rtotal + int(b[1])
+        menu_aver[coun] = menu_Rtotal / menu_total *100
+    ranking = {menu[0]:menu_aver[0],menu[1]:menu_aver[1],menu[2]:menu_aver[2],menu[3]:menu_aver[3],
+               menu[4]:menu_aver[4],menu[5]:menu_aver[5],menu[6]:menu_aver[6],menu[7]:menu_aver[7],menu[8]:menu_aver[8]
+              ,menu[9]:menu_aver[9],menu[10]:menu_aver[10]}
+    top_menu = sorted(ranking, key=lambda k : ranking[k], reverse=True)
+    worst_menu = sorted(ranking, key=lambda k : ranking[k])
+    data4 = {'순위':[top_menu[0],top_menu[1],top_menu[2],top_menu[3],top_menu[4]], '식수율':[ranking[top_menu[0]],
+            ranking[top_menu[1]],ranking[top_menu[2]],ranking[top_menu[3]],ranking[top_menu[4]]]}
+    data5 = {'순위':[worst_menu[0],worst_menu[1],worst_menu[2],worst_menu[3],worst_menu[4]],'식수율':[ranking[worst_menu[0]],
+            ranking[worst_menu[1]],ranking[worst_menu[2]],ranking[worst_menu[3]],ranking[worst_menu[4]]]}
+    good_menu =[]
+    for a in range(5) :
+        good_menu.append(ranking[top_menu[a]])
+    bed_menu = []
+    for a in range(5) :
+        bed_menu.append(ranking[worst_menu[a]])
+    df4 = DataFrame(data4, columns = ['순위','식수율'])
+    df4 = df4[['순위','식수율']].groupby('순위',sort=False).sum()
+    bar4 = FigureCanvasTkAgg(figure4, show6Frame)
+    bar4.get_tk_widget().pack(side=LEFT, fill=BOTH)
+    ax4 = figure4.add_subplot(111)
+    ax4.set_title('인기메뉴 top5')
+    ax5 = figure5.add_subplot(111)
+    ax5.set_title('비인기메뉴 top5[맨 왼쪽위 뒤에서1등!]')
+    df5 = DataFrame(data5, columns = ['순위','식수율'])
+    df5 = df5[['순위','식수율']].groupby('순위',sort=False).sum()
+    bar5 = FigureCanvasTkAgg(figure5, show7Frame)
+    bar5.get_tk_widget().pack(side=LEFT, fill=BOTH)
+    pos2 = np.arange(5)
+    rects2 = plt.bar(pos2, good_menu, align='center',width= 0.5)
+    for i,rect in enumerate(rects2) :
+        ax4.text(rect.get_x() + rect.get_width() / 2.0, 0.95*rect.get_height(),
+               str(int(good_menu[i]))+ '%', ha='center')
+    plt.xticks(pos2, top_menu)
+    pos3 = np.arange(5)
+    rects3 = plt.bar(pos3,bed_menu, align='center',width= 0.5)
+    for i,rect in enumerate(rects3) :
+        ax5.text(rect.get_x() + rect.get_width() / 2.0, 0.95*rect.get_height(),
+               str(int(bed_menu[i]))+ '%', ha='center')
+    plt.xticks(pos3, worst_menu)
+    
+    df1.plot(kind='bar', ylim=[55,100],legend=True, ax = ax1, rot=0)
+    df2.plot(kind='bar', ylim=[55,100],legend=True, ax = ax2, rot=0)
+    df3.plot(kind='bar', ylim=[55,100],legend=True, ax = ax3, rot=0)
+    df4.plot(kind='bar', ylim=[55,100],legend=True, ax = ax4, rot=0)
+    df5.plot(kind='bar', ylim=[55,100],legend=True, ax = ax5, rot=0)
+                                                            
+        
+        
+        
+        
+    def one_click() :        
+        value = radio_value.get()
+        show3Frame.place(x=55,y=65)
+        show4Frame.place(x=55,y=65)
+        show5Frame.place(x=55,y=65)
+        show6Frame.place(x=55,y=65)
+        show7Frame.place(x=55,y=65)
+        if value == 0 :
+            show3Frame.tkraise()
+        elif value == 1 :
+            show4Frame.tkraise()
+        elif value == 2 :
+            show5Frame.tkraise()
+        elif value == 3 :
+            show6Frame.tkraise()
+        elif value == 4:
+            show7Frame.tkraise()
+                
+    #일별
+    #일 중 조중석
+    
+    
+    def menu1() :
+        showFrame.pack_forget()
+        show1Frame.pack_forget()
+        show2Frame.pack_forget()
+        showFrame.pack_forget()
+        showFrame.pack_forget()
+        showFrame.pack_forget()
+        showFrame.pack_forget()
+        showFrame.pack_forget()
+        stdFrame.pack_forget()
+        predictFrame.pack_forget()
+        frameTitle.pack(fill="both", expand=True)
+    
+    
+        
+    
+    showLabel = Label(showFrame, text = "분석하기",font=("궁서체", 40), width =40, bg = 'old lace').place(x= 0, y = 20)
+    menubt = Button(show2Frame,width = 30, height=3, text='메뉴', command=menu1).place(x=700,y=500)
+    showButton = Button(show2Frame, text="보여줘!", command = one_click).place(x=575,y=10)
+    
+        
+    
+
+def addfile() :
+    try :
+        mainView.filename = filedialog.askopenfilename(initialdir = "E:/Images", title = "choose your file", filetypes  = (("xlsx","*.xlsx"),("all files","*.*")))
+        filpath = mainView.filename
+    except :
+        response = msg.showerror("이런!","엑셀파일이 아닙니다. 다시 시도해주세요")
+
+def std_enroll() :
+    
+    def deletefile() :
+        year = combobox1.get()
+        month = combobox2.get()
+        if (combobox1.get() !="연도 선택") and (combobox2.get() !="월 선택") :
+            cur.execute("select * FROM Cafeteria where 연도 = '"+combobox1.get()+"' AND 월 = '"+combobox2.get()+"'")
+            if len(cur.fetchall()) != 0 :        
+                response = msg.askyesno("정말?!","기존의 식수정보를 삭제하시겠습니까?")
+                if response == True :
+                        cur.execute("Delete From Cafeteria where 연도 ="+combobox1.get()+" AND 월 ="+combobox2.get()+"")
+                        msg.showinfo("삭제완료", "선택하신 식수정보를 삭제했습니다.")
+            elif len(cur.fetchall())==0 :
+                msg.showinfo("아니?", "선택하신 년, 월의 식수정보가 없습니다! 다시 확인해주세요.")
+        else :
+            response = msg.showerror("이런!","연도 또는 월 선택을 하지 않으셨습니다. 다시 시도해주세요")
+
+    def checkcheck() :
+        message = " "
+        cur.execute("select DISTINCT 연도,월 FROM Cafeteria")
+        message_array = []
+        for a in cur :
+            message = a[0]+"년 "+a[1]+"월"
+            message_array.append(message)
+        message = ""
+        for b in range(len(message_array)) :
+            message = message + message_array[b]+"\n"
+        msg.showinfo("보유 데이터 표시",message)
+    std3Label = Label(std1Frame, text = "월별 식수 등록하기",font=("궁서체", 40), width =40, bg = 'old lace').place(x= 0, y = 20)
+    combobox1['values']=('2019','2020','2021')
+    combobox1.set("연도 선택")
+    combobox2.set("월 선택")
+    combobox2['values']=('1','2','3','4','5','6','7','8','9','10','11','12')
+    combobox1.place(x=10,y=100)
+    combobox2.place(x=270,y=100)
+    menubutton = Button(std2Frame,width = 30, height=3, text='메뉴', command=menu).place(x= 700, y=500)
+    savebutton = Button(std2Frame,width = 30, height=3, text='식수저장', command=save).place(x=500,y=500)
+    canvas1= Canvas(std2Frame,width=400, height=200,relief="solid",bd=2)
+    label_meal= Label(std2Frame, text="n월에 대한 식사 유무").place(x=50,y=165)
+    button_file =  Button(std2Frame, width=12,text="파일 첨부", command = addfile).place(x=530,y=100)
+    button_delfile =  Button(std2Frame, width=12,text="파일 삭제", command = deletefile).place(x=630,y=100)
+    had_file =  Button(std2Frame, width=12,text="보유 데이터 확인", command = checkcheck).place(x=730,y=100)
+    label_like_this= Label(std2Frame, text="엑셀파일의 양식은 다음과 같아야 함").place(x=30,y=200)
+    label_ima = Label(std2Frame, image=ima2).place(x= 27,y=220)
+    
+    canvas1.create_rectangle(10,10,190,40,tags="rect1")
+    canvas1.place(x=10,y=150)
+
+def predict():
+    canvas1= Canvas(predict2Frame,width=400, height=200,relief="solid",bd=2)
+    canvas1.create_rectangle(10,10,190,40,tags="rect1")
+    canvas1.place(x=10,y=70)
+    prdLabel = Label(predictFrame, text = "식수 예상하기",font=("궁서체", 40), width =40, bg = 'old lace').place(x= 0, y = 20)
+    menubt = Button(predict2Frame,width = 30, height=3, text='메뉴', command=menu).place(x= 700, y=500)
+    predbt = Button(predict2Frame,width = 30, height=3, text='예상해서 파일만들기', command=pred).place(x= 400, y=500)
+    button_file =  Button(predict2Frame, width=24,text="파일 첨부", command = addfile).place(x=530,y=70)
+    label_meal= Label(predict2Frame, text="n월에 대한 식사 유무").place(x=50,y=85)
+    label_like_this= Label(predict2Frame, text="엑셀파일은 다음과 같이 식수등록에서 식수인원 열을 작성안한 양식").place(x=30,y=120)
+    label_ima = Label(predict2Frame, image=ima3).place(x= 27,y=140)
+    
+
+
+def menu() :
+    showFrame.pack_forget()
+    show1Frame.pack_forget()
+    show2Frame.pack_forget()
+    showFrame.pack_forget()
+    showFrame.pack_forget()
+    showFrame.pack_forget()
+    showFrame.pack_forget()
+    showFrame.pack_forget()
+    stdFrame.pack_forget()
+    predictFrame.pack_forget()
+    frameTitle.pack(fill="both", expand=True)
+
+def start_std() :
+    frameTitle.pack_forget()
+    std1Frame.place(x=0,y=0)
+    std2Frame.place(x=0,y=151)
+    stdFrame.pack(fill="both", expand=True)
+
+def start_pre() :
+    frameTitle.pack_forget()
+    predict1Frame.place(x=0,y=0)
+    predict2Frame.place(x=0,y=151)
+    predictFrame.pack(fill="both", expand=True)
+    
+def start_like() :
+    frameTitle.pack_forget()
+    show1Frame.place(x=0,y=0)
+    show2Frame.place(x=0,y=151)
+    showFrame.pack(fill="both", expand=True)
+
+def pred() :
+    try :
+        cur.execute("select * from Cafeteria")
+        data = pd.read_excel(mainView.filename, sheet_name="Sheet1")
+        df = DataFrame(data)
+        time_total = 0
+        time_Rtotal = 0
+        row_aver = []
+        for a in range(df.shape[0]) :
+            goboon = df.iloc[a].구분
+            memenu = df.iloc[a].메뉴
+            dayday = df.iloc[a].요일
+            total_c = 0
+            client = 0
+            realclient = 0
+            cur.execute("select 전체인원,식수인원 from Cafeteria where 구분 = '"+goboon+"' and 메뉴 = '"+memenu+"' and 요일 = '"+dayday+"'")
+            for b in cur :
+                client = client + int(b[0])
+                realclient = realclient + int(b[1])
+            total_c = int(df.iloc[a].전체인원)
+            row_aver.append(round(total_c * (realclient/client)))
+        df["식수인원"] = row_aver
+#        df.iloc[a].식수인원 = total_c * (client/realclient)
+        ftypes = [('xlsx file','.xlsx'), ('All files','*')]
+        savepath = filedialog.asksaveasfile(filetypes= (("Excel files", "*.xlsx"), ("All files", "*.*")), title = "다른이름으로 저장하기", initialfile='noname.xlsx')
+        writer = pd.ExcelWriter(savepath.name, engine = 'xlsxwriter')
+        df.to_excel(writer, sheet_name='Sheet1', index=False)
+        writer.close()
+    except :   
+        response = msg.showerror("이런!","파일을 등록하지 않으면 예측할수없습니다.! 등록하고 와주세요")
+    
+        
+        
+
+
+
+
+ # 다중 선형회귀분석 방법   
+ #   prepre = cur.execute("select 구분,요일,메뉴,전체인원,식수인원 from Cafeteria")
+ #   cols = [column[0] for column in prepre.description]
+ #   df1 = DataFrame.from_records(data=prepre.fetchall(), columns=cols)
+ #   for cow in range(7) :
+ #       df1.loc[df1.요일==day[cow], '요일'] = cow+1
+ #   for cot in range(len(menu)) :
+ #       df1.loc[df1.메뉴==menu[cot], '메뉴'] = cot+1
+ #   df1.loc[df1.구분=='조식', '구분'] = 1
+ #   df1.loc[df1.구분=='중식', '구분'] = 2
+ #   df1.loc[df1.구분=='석식', '구분'] = 3
+ #   reg = sm.OLS.from_formula("식수인원 ~요일 + 메뉴+전체인원", data=df1).fit()
+ #   print(reg.summary())
+    
+    # 메뉴별 식수비율
+    # 요일별 했고, 식수예상 비율, 파일첨부, 파일생성
+    #
+def save() :
+    try :
+        data = pd.read_excel(mainView.filename, sheet_name="Sheet1")
+        df = DataFrame(data)
+        year = combobox1.get()
+        month = combobox2.get()
+        if (combobox1.get() !="연도 선택") and (combobox2.get() !="월 선택") :
+            cur.execute("select * FROM Cafeteria where 연도 = '"+combobox1.get()+"' AND 월 = '"+combobox2.get()+"'")
+            if len(cur.fetchall()) != 0 :        
+                response = msg.askyesno("이런1!","이미 있는 식수정보입니다. 이전 정보를 삭제하고 새로 등록하시겠습니까?")
+                if response == True :
+                    cur.execute("select * FROM Cafeteria WHERE 연도 IS NULL OR 월 IS NULL OR 구분 IS NULL OR 구분 IS NULL OR 요일 IS NULL OR 메뉴 IS NULL OR 전체인원 IS NULL OR 식수인원 IS NULL;")
+                    if len(cur.fetchall())!= 0 :
+                        response = msg.showerror("이런!1","잘못된 엑셀파일의 형식을 사용하셨군요!. 다시 시도해주세요")
+                    else :
+                        cur.execute("Delete From Cafeteria where 연도 ="+combobox1.get()+" AND 월 ="+combobox2.get()+"")
+                        df.to_sql('Cafeteria', con, if_exists = 'append',index=False)
+                    msg.showinfo("wow","정상적으로 저장되었습니다.")
+                else :
+                    print("ㅇㅈ")
+            elif len(cur.fetchall())==0 :
+                cur.execute("select * FROM Cafeteria WHERE 연도 IS NULL OR 월 IS NULL OR 구분 IS NULL OR 구분 IS NULL OR 요일 IS NULL OR 메뉴 IS NULL OR 전체인원 IS NULL OR 식수인원 IS NULL;")
+                if len(cur.fetchall()) == 0 :
+                    df.to_sql('Cafeteria', con, if_exists = 'append',index=False)
+                    msg.showinfo("wow","정상적으로 저장되었습니다.")
+                    print("yes")
+                else :
+                    response = msg.showerror("이런2!","잘못된 엑셀파일의 형식을 사용하셨군요!. 다시 시도해주세요")
+        else :
+            response = msg.showerror("이런!","연도 또는 월 선택을 하지 않으셨습니다. 다시 시도해주세요")
+    except :
+        msg.showerror("이런!","파일을 첨부 안하셨네요. 확인해주세요!")
+
+def good_bye():
+    mainView.destroy()
+
+
+
+if __name__ =='__main__' :
+    makeDir()
+    createTable()
+    frameTitle = Frame(mainView, height = 768, width = 1024, background='white')
+    ima = PhotoImage(file = "음.gif")
+    ima2 = PhotoImage(file = "캡처.gif")
+    ima3 = PhotoImage(file = "캡처1.gif")
+    frameTitle.pack(expand=True, fill="both")
+
+    labelTitle = Label(frameTitle, text="Zero-scran \n-잔반은 없다!-", font=("궁서체", 40), width=17, bg = 'white').place(x=50,y=50)
+
+    frameCenter = Frame(frameTitle, height = 568, width = 1024,background='skyblue')
+    frameCenter.place(x=0,y=201)
+    labelImage = Label(frameTitle, image=ima, width=300).place(x= 80,y=384)
+
+
+
+    registButton = Button(frameTitle, width = 30, height=3,text='월별 식수등록', command=start_std).place(x=700,y=300)
+    expectButton = Button(frameTitle,width = 30, height=3, text='익월 식수예상' , command=start_pre).place(x=700,y=420)
+    rankingButton = Button(frameTitle,width = 30, height=3, text='분석하기', command=start_like).place(x=700,y=540)
+    endButton = Button(frameTitle,width = 30, height=3, text='종료', command=good_bye).place(x=700,y=660)
+
+    con = sqlite3.connect(Target_File_Full_Path)
+    cur = con.cursor()
+    std_enroll()
+    predict()
+    like_dislike()
+
+    con.commit()
+    mainView.mainloop()
