@@ -71,7 +71,7 @@ void FIFO(int pnum, int *pid, int *at, int *bt, int *tt, int *wt)
 		runtime--; }
 		if(ttt >0){
 		ttt--;}
-}}
+}} 
 
 int main(void) {
 	FILE *fp;
