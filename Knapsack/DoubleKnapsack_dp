@@ -1,0 +1,68 @@
+#include <stdio.h> 
+#include <algorithm>
+#include <iostream>
+#include <cstdio>
+
+using namespace std;
+
+struct Item
+{
+    int value, price;
+   
+};
+struct value {
+    int A, B;
+};
+
+bool cmp(struct Item x, struct Item y)
+{
+    double a = (double)x.value / x.price;
+    double b = (double)y.value / y.price;
+    return a > b;
+}
+
+value Knapsack(int W_1, int W_2, struct Item arr[], int n)
+{
+    sort(arr, arr + n, cmp);
+
+    value resut = { 0,0 };
+    int NW1= 0;
+    int NW2 = 0;
+    int W1 = 0;
+    int W2 = 0;
+    for (int i = 0; i < n; i++)
+    {
+        if (NW1 + arr[i].price <= W_1)
+        {
+            NW1 += arr[i].price;
+            W1 += arr[i].value;
+        }
+        else if (NW2 + arr[i].price <= W_2) {
+
+            NW2 += arr[i].price;
+            W2 += arr[i].value;
+        }
+        else
+        {
+            resut.A = W1;
+            resut.B = W2;
+            break;
+        }
+    }
+
+    return resut;
+}
+
+int main()
+{
+    int W_1 = 15;   //    Weight of knapsack 
+    int W_2 = 40;
+    Item arr[] = { {60, 10}, {100, 20}, {120, 30} };
+
+    int n = sizeof(arr) / sizeof(arr[0]);
+    value re;
+    re = Knapsack(W_1, W_2, arr, n);
+
+    printf("얻을 수 있는 최대 가치 첫번째 가방 = %d , 두번째 가방= %d ",re.A,re.B);
+    return 0;
+}
