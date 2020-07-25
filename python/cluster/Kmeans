@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans
 Hs = pd.read_csv('C:/Users/gytkd/H_S.csv')
  -> Save the created H_S.csv file to a variable in HS
 df = pd.DataFrame(Hs, columns=['age','kg'])
-df = df.dropna()
+df = df.dropna() 
  -> Hs 변수의 내용 중 (age)와 (kg) 부분만 떼어내어 DataFrame 형식으로 df 변수에 저장 후 Nan 값 처리
 print(df)
 sns.lmplot('age','kg', data = df, fit_reg = False, scatter_kws={"s":50})
