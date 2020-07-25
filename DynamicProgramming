@@ -1,0 +1,97 @@
+#include <iostream>
+#include<cstdlib>
+using namespace std;
+
+#define INF 7777777;
+#define NIL -1
+#define MAX 123
+
+int graph[MAX][MAX];
+int before[MAX][MAX];
+int n;
+
+void floyd() {
+    for (int mid = 1;mid <= n; ++mid) {
+        for (int start = 1;start <= n; ++start) {
+            for (int goal = 1; goal <= n; ++goal) {
+                if (graph[start][goal] > graph[start][mid] + graph[mid][goal]) {
+                    graph[start][goal] = graph[start][mid] + graph[mid][goal];
+                    before[start][goal] = before[mid][goal];
+
+                }
+            }
+        }
+    }
+}
+    
+void setTable(int edge) {
+    int start, goal, w;
+    for (int a = 1;a <= n;++a) {
+        for (int b = 1; b<= n;++b) {
+            graph[a][b] = MAX;
+            if (a == b) graph[a][b] = 0;
+            before[a][b] = NIL;
+        }
+    }
+
+    for (int c = 0;c < edge;++c) {
+        scanf("%d %d %d", &start, &goal, &w);
+        scanf("%*c", start, goal, w);
+        graph[start][goal] = w;
+        before[start][goal] = start;
+    }
+
+}
+
+void printTable() {
+ 
+    printf("Cost Table\n");
+
+    for (int a = 1;a <= n;++a) {
+        for (int b = 1; b <= n; ++b) {
+            printf("%d\t", graph[a][b]);
+        }
+        printf("\n\n");
+    }
+    printf("\n");
+
+    printf("Print Shortest Path \n");
+    for (int c = 1;c <= n;++c) {
+        for (int d = 1; d <= n; ++d) {
+            if (before[c][d] == -1)
+                printf("0\t");
+            else
+                printf("%d\t", before[c][d]);
+        }
+        printf("\n\n");
+    }
+}
+void path(int a, int b) {
+    if (before[a][b] != -1) {
+        path(a, before[a][b]);
+        printf("%d -  ", before[a][b]);
+        w_sum += graph[a][b];
+    }
+}
+int main() {
+
+    int m;
+    scanf("%d %d", &n, &m);
+    scanf("%*c", n,m);
+
+    setTable(m);
+
+    printTable();
+
+    floyd();
+
+    printTable();
+
+   for (int a = 1; a <= n; a++) {
+        for (int b = 1; b <= n; b++) {
+            w_sum = 0;
+            printf("%d 부터 %d 까지 최단경로 : ", a, b);
+            path(a, b);
+        }
+    }
+}
