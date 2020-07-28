@@ -1,0 +1,38 @@
+#include <iostream>
+#include <stdio.h>
+#include <string.h>
+
+
+long long GopGop(long long A, long long B, long long C){
+    if (B == 1)
+        return A;
+    else{
+        long long temp = GopGop(A, B / 2, C);
+        if (B % 2==1)
+            return ((temp * temp) % C * A) % C;
+        else
+            return (temp * temp) % C;
+    }
+}
+
+
+int main() {
+    char str[256];
+    char* pos;
+    long long num[3];
+    int i = 0;
+    while (i != 3) {
+        scanf("%[^\n]s", str);
+        scanf("%*c", str);
+
+        pos = strtok(str, " ");
+        while (pos != NULL) {
+            num[i] = atol(pos);
+            pos = strtok(NULL, " ");
+            ++i;
+        }
+    }
+    printf("%lld", GopGop(num[0]%num[2], num[1], num[2]));
+
+
+}
