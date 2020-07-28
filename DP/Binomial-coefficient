@@ -1,0 +1,53 @@
+#include <iostream>
+#include <set>
+using namespace std;
+typedef long long ll;
+const int MOD = 1000000007;
+
+int N, K;
+ll Inversion() {
+	ll ret = 1LL;
+	ll temp = 1LL;
+	ll Want = MOD - 2;
+	// temp = (K!)^1 = (K!)^(2^0)
+	for (int i = 2; i <= K; ++i) {
+		temp *= i;
+		temp %= MOD;
+	}
+	while (Want) {
+		if (Want % 2) {
+			ret *= temp;
+			ret %= MOD;
+		}
+		// (k!)^(2^i) -> (k!)^(2^(i+1))
+		temp *= temp;
+		temp %= MOD;
+		Want /= 2;
+	}
+	return ret % MOD;
+}
+// N! / (N-K)!
+ll Combi() {
+	ll ret = 1LL;
+	for (int i = N; i > N - K; i--) {
+		ret *= i;
+		ret %= MOD;
+	}
+	return ret % MOD;
+}
+
+void Ehang3(ll Inversion, ll Combi) {
+	ll results = (Inversion * Combi) % MOD;
+	printf("%lld\n", results);
+}
+int main() {
+	scanf("%d %d", &N, &K);
+	scanf("%*c", N, K);
+
+
+	ll a = Inversion();
+	ll b = Combi();
+	Ehang3(a, b);
+
+	return 0;
+}
