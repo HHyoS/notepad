@@ -1,0 +1,128 @@
+#include <iostream>
+#include<cstdlib>
+#include<vector>
+using namespace std;
+
+#define MAX 999999
+
+vector<vector <int>> graph;
+vector<vector <int>> before;
+vector<int> aray;
+int numb;
+
+void Cmm() {
+    int j=0;
+    for (int d = 1;d <= numb - 1; ++d) {
+        for (int i = 1; i <= numb - d; ++i) {
+            j = i + d;
+            for (int k = i; k <= j - 1; k++) {
+                if (graph[i][j] > graph[i][k] + graph[k + 1][j] + aray[i - 1] * aray[k] * aray[j]) {
+                    graph[i][j] = graph[i][k] + graph[k + 1][j] + aray[i - 1] * aray[k] * aray[j];
+                    before[i][j] = k ;
+                }
+
+
+            }
+        }
+    }
+}
+
+bool setTable() {
+
+    graph.assign(numb + 1, vector<int>(numb + 1, 0));
+    before.assign(numb + 1, vector<int>(numb + 1, 0));
+    aray.assign(numb +1,0);
+
+    int one, two;
+    printf("Please enter the size of the row as many rows as you entered. ex) 2Line 3Row =  2 3 \n");
+    printf("/However, consecutive matrices must have the same values as columns in the front matrix and rows in the back matrix..\n");
+    for (int c = 0;c < numb;++c) {
+        scanf("%d %d", &one, &two);
+        if (c >= 1)
+            if (aray[c] != one) {
+                printf("wrong input.");
+                return false;
+            }
+        aray[c] = one;
+        aray[c + 1] = two;
+
+    }
+    for (int a = 1;a <= numb;++a) {
+        for (int b = 1; b <= numb;++b) {
+            graph[a][b] = MAX;
+            if (a == b) {
+                graph[a][b] = 0;
+            }
+        }
+    }
+    for (int a = 1;a <= numb - 1;++a) {
+        for (int b = 1; b <= numb;++b) {
+            before[a][b] = 0;
+            if (b == a + 1) {
+                before[a][b] = a;
+            }
+        }
+    }
+    return true;
+
+}
+
+void printTable() {
+
+    printf("Path Table\n");
+
+    for (int a = 1;a <= numb;++a) {
+        for (int b = 1; b <= numb; ++b) {
+            printf("%d\t", graph[a][b]);
+        }
+        printf("\n\n");
+    }
+    printf("\n");
+
+    printf("Print Shortest Path \n");
+    for (int c = 1;c <= numb-1;++c) {
+        for (int d = 1; d <= numb; ++d) {
+            if (before[c][d] == -1)
+                printf("-\t");
+            else
+                printf("%d\t", before[c][d]);
+        }
+        printf("\n\n");
+    }
+}
+void path(int a, int b) {
+    int k = 0;
+    if (a == b) {
+        printf("A%d", a);
+    }
+    else{
+        k = before[a][b];
+        printf("(");
+        path(a, k);
+        path(k + 1, b);
+        printf(")");
+
+    }
+}
+int main() {
+
+    printf("input number of Matrix >> ");
+    scanf("%d", &numb);
+    while (!setTable());
+    printTable();
+
+
+    Cmm();
+
+    printTable();
+
+    for (int a = 1; a <= numb; a++) {
+        for (int b = 1; b <= numb; b++) {
+            if (a <= b) {
+            printf("%d to %d minimum matrix times : ", a, b);
+            path(a, b);
+            printf("\n");
+        }
+        }
+    }
+}
