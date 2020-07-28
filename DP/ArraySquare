@@ -1,0 +1,57 @@
+#include <iostream>
+#include <stdio.h>
+#include<vector>
+
+using namespace std;
+int numbe;
+long long x;
+std::vector<int> Mulp(vector<int>& mA, vector<int>& mB) {
+    vector <int>mC(numbe * numbe);
+    for (int a = 0; a < numbe; ++a) {
+        for (int b = 0; b < numbe; ++b) {
+            for (int c = 0; c < numbe; ++c) {
+                mC[a * numbe + b] = (mC[a * numbe + b] + mA[a * numbe + c] * mB[c * numbe + b]) % 1000;
+            }
+        }
+    }
+    return mC;
+}
+std::vector<int> GopGop(vector<int>& A, long long B) {
+    if (B == 1) {
+        return A;
+    }
+    else {
+        vector<int> temp = GopGop(A, B / 2);
+        temp = Mulp(temp, temp);
+        if (B % 2) {
+            temp = Mulp(temp, A);
+        }
+        return temp;
+    }
+}
+
+std::vector<int> setVector() {
+    vector<int > array(numbe * numbe);
+    int a;
+    for (int i = 0; i < numbe * numbe; ++i) {
+        scanf("%d", &a);
+        array[i] = a % 1000;
+    }
+    return array;
+}
+int main() {
+    long long b;
+    scanf("%lld %lld", &numbe, &x);
+    scanf("%*c", numbe, x);
+    vector<int> arrayA(numbe * numbe);
+    arrayA = setVector();
+    arrayA = GopGop(arrayA, x);
+    for (int c = 0; c < numbe; ++c) {
+        for (int d = 0; d < numbe; ++d) {
+            printf("%d ", arrayA[c * numbe + d] % 1000);
+        }
+        printf("\n");
+    }
+    return 0;
+
+}
