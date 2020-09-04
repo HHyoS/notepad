@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pandas import Series, DataFrame
 import tkinter.messagebox as msg
-import statsmodels.api as sm
+import statsmodels.api as sm // 회귀분석
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 get_ipython().run_line_magic('matplotlib', 'inline')
 
